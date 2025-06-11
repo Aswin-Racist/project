@@ -26,4 +26,7 @@ public interface QuestDao {
 
     @Query("SELECT * FROM quests ORDER BY id DESC")
     List<Quest> getAllQuests();
+
+    @Query("UPDATE quests SET completed = :completed WHERE id = :questId")
+    void updateQuestCompletedStatus(long questId, boolean completed);
 } 

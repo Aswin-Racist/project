@@ -38,4 +38,8 @@ public class QuestRepository {
     public List<Quest> getAllQuests() {
         return questDao.getAllQuests();
     }
+
+    public void updateQuestCompletedStatus(long questId, boolean completed) {
+        questDao.updateQuestCompletedStatus(questId, completed);
+    }
 } 

@@ -30,4 +30,10 @@ public interface ClueDao {
 
     @Query("SELECT * FROM clues WHERE questId = :questId AND discovered = 0 ORDER BY sequenceNumber")
     List<Clue> getUndiscoveredClues(long questId);
+
+    @Query("UPDATE clues SET discovered = :discovered WHERE id = :clueId")
+    void updateDiscoveredStatus(long clueId, boolean discovered);
+
+    @Query("SELECT * FROM clues WHERE id = :clueId")
+    Clue getClueById(long clueId);
 } 

@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "578673366612",
+    "firebase_url": "https://treasurehuntadv-7f0ad-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "treasurehuntadv-7f0ad",
+    "storage_bucket": "treasurehuntadv-7f0ad.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:578673366612:android:0b8b9744d55d3214e4bfc1",
+        "android_client_info": {
+          "package_name": "com.demo.map"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "578673366612-3v5i1jmb8bfvurkafq70ejiolfg23gg7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAmcUtw3iVYB2xY8K5_QvRPJyo7mi6Wu24"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "578673366612-3v5i1jmb8bfvurkafq70ejiolfg23gg7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

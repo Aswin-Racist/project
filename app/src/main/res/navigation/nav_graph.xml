@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/navigation_map">
+
+    <fragment
+        android:id="@+id/navigation_map"
+        android:name="com.adventure.solo.ui.map.MapFragment"
+        android:label="Map" />
+
+    <fragment
+        android:id="@+id/navigation_quests"
+        android:name="com.adventure.solo.ui.quests.QuestsFragment"
+        android:label="Quests" />
+
+    <fragment
+        android:id="@+id/navigation_profile"
+        android:name="com.adventure.solo.ui.profile.ProfileFragment"
+        android:label="Profile" />
+
+</navigation> 

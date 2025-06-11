@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <!-- App theme colors -->
+    <color name="colorPrimary">#2196F3</color>
+    <color name="colorPrimaryDark">#1976D2</color>
+    <color name="colorAccent">#FF4081</color>
+    
+    <!-- Avatar dialog colors -->
+    <color name="avatar_selected">#E3F2FD</color>
+    <color name="avatar_stroke">#2196F3</color>
+    <color name="avatar_normal">#FFFFFF</color>
+    <color name="avatar_border">#BDBDBD</color>
+    
+    <!-- Leaderboard medals -->
+    <color name="gold">#FFD700</color>
+    <color name="silver">#C0C0C0</color>
+    <color name="bronze">#CD7F32</color>
+    
+    <!-- UI Colors -->
+    <color name="colorPrimaryLight">#4D000000</color>
+    <color name="colorAccentLight">#4DFFFFFF</color>
+    
+    <!-- Launcher Icon -->
+    <color name="ic_launcher_background">#000000</color>
+</resources>

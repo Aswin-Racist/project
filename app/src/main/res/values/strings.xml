@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Solo Adventure</string>
+    <string name="no_missions">No active missions</string>
+    <string name="points_format">Points: %d</string>
+    <string name="points_default">Points: 0</string>
+    <string name="missions_completed">Missions completed: %d</string>
+    <string name="get_closer">Get closer to collect this reward!</string>
+    <string name="location_permission_required">Location permission is required for this game</string>
+    <string name="unable_to_determine_location">Unable to determine your location</string>
+    <string name="reward_collected">Rewards Collected: %d</string>
+    <string name="leaderboard">Leaderboard</string>
+    <string name="select_avatar">Select Your Avatar</string>
+    <string name="enter_name">Enter your name</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="profile">Profile</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="recenter">Recenter Map</string>
+    <string name="out_of_range">You\'re too far! Get closer to continue playing.</string>
+    <string name="nearby_players">Nearby Players: %d</string>
+    <string name="player_stats">Player Stats</string>
+    <string name="total_rewards">Total Rewards: %d</string>
+    <string name="rank">Rank: %d</string>
+    <string name="close">Close</string>
+
+    <string name="achievements">Achievements</string>
+    <string name="achievements_unlocked">Achievements Unlocked: %d/%d</string>
+
+    <string name="total_distance">Total Distance: %.1f m</string>
+    <string name="play_time">Play Time: %d minutes</string>
+    
+    <!-- Achievement Progress -->
+    <string name="achievement_progress">%d%%</string>
+    <string name="achievement_unlocked">Unlocked!</string>
+    
+    <!-- Profile Dialog -->
+    <string name="profile_title">Player Profile</string>
+    <string name="stats_distance">Distance Traveled</string>
+    <string name="stats_playtime">Play Time</string>
+    <string name="stats_missions">Missions Completed</string>
+    <string name="stats_treasures">Treasures Found</string>
+    <string name="stats_achievements">Achievements</string>
+    <string name="stats_points">Achievement Points</string>
+    <string name="stats_rank">Current Rank</string>
+    
+    <!-- Leaderboard Dialog -->
+    <string name="leaderboard_title">Leaderboard</string>
+    <string name="leaderboard_empty">No players found</string>
+    
+    <!-- Achievement Types -->
+    <string name="achievement_treasure_hunter">Treasure Hunter</string>
+    <string name="achievement_mission_master">Mission Master</string>
+    <string name="achievement_gold_digger">Gold Digger</string>
+    <string name="achievement_explorer">Explorer</string>
+    <string name="achievement_veteran">Veteran</string>
+    <string name="achievement_social">Social Butterfly</string>
+    <string name="achievement_collector">Collector</string>
+    <string name="achievement_speedster">Speedster</string>
+    <string name="achievement_dedicated">Dedicated</string>
+    <string name="achievement_legend">Legend</string>
+    
+    <!-- Achievement Descriptions -->
+    <string name="achievement_treasure_hunter_desc">Find your first treasure</string>
+    <string name="achievement_mission_master_desc">Complete 10 missions</string>
+    <string name="achievement_gold_digger_desc">Collect 1000 gold coins</string>
+    <string name="achievement_explorer_desc">Travel 10km in total</string>
+    <string name="achievement_veteran_desc">Play for 24 hours in total</string>
+    <string name="achievement_social_desc">Meet 50 different players</string>
+    <string name="achievement_collector_desc">Collect all types of treasures</string>
+    <string name="achievement_speedster_desc">Complete a mission in under 5 minutes</string>
+    <string name="achievement_dedicated_desc">Play for 7 consecutive days</string>
+    <string name="achievement_legend_desc">Reach the top of the leaderboard</string>
+
+    <string name="dashboard_title">Dashboard</string>
+
+    <string name="my_location">My Location</string>
+    <string name="start_quest">Start Quest</string>
+    <string name="quest_complete">Quest Complete!</string>
+    <string name="quest_reward">Reward: %1$d points</string>
+    <string name="next_clue">Next Clue</string>
+    <string name="keep_searching">Keep searching! You\'re not quite there yet.</string>
+    <string name="location_permission_required">Location permission is required for quests</string>
+</resources>

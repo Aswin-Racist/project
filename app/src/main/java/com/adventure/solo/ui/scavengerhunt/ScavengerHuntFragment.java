@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -19,17 +18,22 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.adventure.solo.R;
 import com.adventure.solo.databinding.FragmentScavengerHuntBinding;
-import com.adventure.solo.model.Clue;
-import com.adventure.solo.model.Quest;
-import com.adventure.solo.service.QuestManager;
+import com.adventure.solo.model.Clue; // Still needed for Clue specific fields
+import com.adventure.solo.model.PlayerProfile; // For observing
+import com.adventure.solo.model.Quest; // Still needed for Quest specific fields
+import com.adventure.solo.model.wrapper.ClueWithProgress;
+import com.adventure.solo.model.wrapper.QuestWithProgress;
+import com.adventure.solo.model.ClueType; // Added for puzzle check
 import com.adventure.solo.ui.ar.ARObjectInteractionListener;
 import com.adventure.solo.ui.ar.ARSceneFragment;
+import com.adventure.solo.ui.puzzle.PuzzleDisplayFragment; // Added for puzzle dialog
 
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
+import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.compass.CompassOverlay;
 import org.osmdroid.views.overlay.gestures.RotationGestureOverlay;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
@@ -37,29 +41,28 @@ import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.inject.Inject;
+// Removed @Inject for QuestManager as it's not directly used by Fragment anymore
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
-public class ScavengerHuntFragment extends Fragment implements ARObjectInteractionListener {
+public class ScavengerHuntFragment extends Fragment implements ARObjectInteractionListener, PuzzleDisplayFragment.PuzzleSolvedListener { // Added PuzzleSolvedListener
+    private static final String TAG = "ScavengerHuntFrag";
 
-    private static final String TAG = "ScavengerHuntFragment";
     private FragmentScavengerHuntBinding binding;
     private ScavengerHuntViewModel viewModel;
 
-    @Inject
-    QuestManager questManager;
+    // currentQuestForFragmentContext is now QuestWithProgress
+    private QuestWithProgress currentQuestForFragmentContext;
 
-    private Quest currentQuestForFragmentContext;
-
-    // Map related fields
     private MapView mapView;
     private MyLocationNewOverlay myLocationOverlay;
     private CompassOverlay compassOverlay;
     private RotationGestureOverlay rotationGestureOverlay;
     private List<Marker> clueMarkers = new ArrayList<>();
+    // private Location lastKnownLocation; // Replaced by direct use of myLocationOverlay.getLastFix()
+
     private static final float PROXIMITY_RADIUS_FOR_AR_METERS = 30.0f;
+
 
     public ScavengerHuntFragment() {}
 
@@ -70,32 +73,13 @@ public class ScavengerHuntFragment extends Fragment implements ARObjectInteracti
         viewModel = new ViewModelProvider(this).get(ScavengerHuntViewModel.class);
 
         this.mapView = binding.map;
+        // Map init moved to onViewCreated to ensure view is fully available
 
-        binding.searchButton.setOnClickListener(v -> {
-            if (!viewModel.performSearch()) {
-                if (getContext() != null) {
-                    Toast.makeText(getContext(), "Not enough stamina to search!", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                 if (getContext() != null) {
-                    Toast.makeText(getContext(), "Searched! +5 Coins, -10 Stamina", Toast.LENGTH_SHORT).show();
-                 }
-            }
-        });
+        binding.searchButton.setOnClickListener(v -> viewModel.performSearch());
 
-        // Example: Recenter button (if you add one with this ID)
-        // if (binding.recenterMapButton != null) {
-        //    binding.recenterMapButton.setOnClickListener(v -> {
-        //        if (myLocationOverlay != null && myLocationOverlay.getMyLocation() != null) {
-        //            mapView.getController().animateTo(myLocationOverlay.getMyLocation());
-        //        } else if (myLocationOverlay != null && myLocationOverlay.getLastFix() != null) {
-        //            GeoPoint lastFixGeoPoint = new GeoPoint(myLocationOverlay.getLastFix().getLatitude(), myLocationOverlay.getLastFix().getLongitude());
-        //            mapView.getController().animateTo(lastFixGeoPoint);
-        //        } else {
-        //            Toast.makeText(getContext(), "Current location not available.", Toast.LENGTH_SHORT).show();
-        //        }
-        //    });
-        // }
+        // Example: Add a button to manually trigger loading the active quest for the team.
+        // If you add a button with R.id.load_quest_button to your layout:
+        // binding.loadQuestButton.setOnClickListener(v -> viewModel.loadActiveQuestForTeam());
 
         return binding.getRoot();
     }
@@ -103,9 +87,41 @@ public class ScavengerHuntFragment extends Fragment implements ARObjectInteracti
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        initializeMap();
+        initializeMap(); // Initialize map after view is created
         observeViewModel();
-        // TODO: Load initial quest/mission state.
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume called.");
+        if (mapView != null) mapView.onResume();
+        if (myLocationOverlay != null) myLocationOverlay.enableMyLocation();
+        if (compassOverlay != null) compassOverlay.enableCompass();
+
+        // Refresh user profile and then attempt to load active quest if necessary
+        viewModel.refreshUserProfile();
+        // Subsequent logic to load quest will be triggered by playerProfile LiveData observer.
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause called.");
+        if (mapView != null) mapView.onPause();
+        if (myLocationOverlay != null) myLocationOverlay.disableMyLocation();
+        if (compassOverlay != null) compassOverlay.disableCompass();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.d(TAG, "onDestroyView called.");
+        if (mapView != null) mapView.onDetach();
+        mapView = null;
+        myLocationOverlay = null; compassOverlay = null; rotationGestureOverlay = null;
+        clueMarkers.clear();
+        binding = null;
     }
 
     private void initializeMap() {
@@ -115,25 +131,26 @@ public class ScavengerHuntFragment extends Fragment implements ARObjectInteracti
         }
         Context ctx = requireActivity().getApplicationContext();
         Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx));
-
         mapView.setTileSource(TileSourceFactory.MAPNIK);
         mapView.setMultiTouchControls(true);
-        mapView.getController().setZoom(16.0); // Slightly more zoom
+        mapView.getController().setZoom(16.0);
 
         myLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(ctx), mapView);
         myLocationOverlay.enableMyLocation();
-        myLocationOverlay.enableFollowLocation();
-        // Make sure R.drawable.ic_user_location_marker exists
-        // myLocationOverlay.setPersonIcon(ContextCompat.getDrawable(requireContext(), R.drawable.ic_user_location_marker));
+        // myLocationOverlay.enableFollowLocation(); // Can be annoying, user can re-center
+        // if (getContext() != null && ContextCompat.getDrawable(requireContext(), R.drawable.ic_user_location_marker) != null) {
+        //    myLocationOverlay.setPersonIcon(ContextCompat.getDrawable(requireContext(), R.drawable.ic_user_location_marker));
+        // }
+        mapView.getOverlays().add(myLocationOverlay);
 
         myLocationOverlay.runOnFirstFix(() -> {
             if (getActivity() != null && myLocationOverlay.getMyLocation() != null) {
                  getActivity().runOnUiThread(() -> {
-                     mapView.getController().animateTo(myLocationOverlay.getMyLocation());
+                    Log.d(TAG, "Map: First fix. Centering map.");
+                    mapView.getController().animateTo(myLocationOverlay.getMyLocation());
                  });
             }
         });
-        mapView.getOverlays().add(myLocationOverlay);
 
         compassOverlay = new CompassOverlay(ctx, mapView);
         compassOverlay.enableCompass();
@@ -146,117 +163,167 @@ public class ScavengerHuntFragment extends Fragment implements ARObjectInteracti
     }
 
     private void observeViewModel() {
-        viewModel.getPlayerScore().observe(getViewLifecycleOwner(), score -> {
-            if (score != null && binding != null && binding.pointsTextView != null) {
-                binding.pointsTextView.setText("Points: " + score);
-            }
-        });
-        viewModel.getCurrentMissionText().observe(getViewLifecycleOwner(), missionText -> {
-            if (binding != null && binding.missionTextView != null) {
-                binding.missionTextView.setText(missionText);
-            }
-        });
-        viewModel.getActiveQuest().observe(getViewLifecycleOwner(), quest -> {
-            currentQuestForFragmentContext = quest;
-            if (quest != null) {
-                // This was missing in the proposed diff, but is in the ViewModel's logic.
-                // When activeQuest changes, ViewModel should load its clues.
-                // This observer in Fragment is mainly for context.
-                // The currentQuestClues observer will handle marker updates.
-                Log.d(TAG, "Active quest changed in Fragment: " + quest.getTitle());
-            } else {
-                updateClueMarkers(new ArrayList<>()); // Clear markers if no active quest
-                Log.d(TAG, "Active quest is null in Fragment.");
-            }
-        });
-        viewModel.getCurrentQuestClues().observe(getViewLifecycleOwner(), this::updateClueMarkers);
+        viewModel.currentPlayerProfile.observe(getViewLifecycleOwner(), profile -> {
+            if (binding == null) return;
+            if (profile != null) {
+                Log.d(TAG, "Observed currentPlayerProfile update: " + profile.username + ", Team: " + profile.teamId);
+                binding.pointsTextView.setText("XP: " + profile.individualXP);
+                binding.staminaTextView.setText("Stamina: " + profile.stamina);
+                binding.coinsTextView.setText("Coins: " + profile.coins);
 
-        viewModel.getPlayerStamina().observe(getViewLifecycleOwner(), stamina -> {
-            if (stamina != null && binding != null && binding.staminaTextView != null) {
-                 binding.staminaTextView.setText("Stamina: " + stamina);
+                // Logic to load team quest if profile is updated (e.g., joined a team)
+                if (profile.teamId != null && !profile.teamId.isEmpty()) {
+                    QuestWithProgress currentQ = viewModel.activeQuestWithProgress.getValue();
+                    // If no active quest or if current active quest's teamId doesn't match profile's teamId
+                    if (currentQ == null || currentQ.progress == null || !profile.teamId.equals(currentQ.progress.teamId)) {
+                        Log.d(TAG, "Player profile updated with a team ID, or active quest mismatch. Loading active quest for team: " + profile.teamId);
+                        viewModel.loadActiveQuestForTeam();
+                    }
+                } else { // No teamId in profile
+                    Log.d(TAG, "Player profile has no team ID. Clearing active quest.");
+                    viewModel.setActiveQuestForTeam(null); // This will clear mission text and markers
+                }
+            } else {
+                Log.d(TAG, "Observed currentPlayerProfile is null.");
+                binding.pointsTextView.setText("XP: --");
+                binding.staminaTextView.setText("Stamina: --");
+                binding.coinsTextView.setText("Coins: --");
+                binding.missionTextView.setText("Login and join a team to play.");
+                updateClueMarkers(new ArrayList<>()); // Clear markers
             }
         });
-        viewModel.getPlayerCoins().observe(getViewLifecycleOwner(), coins -> {
-            if (coins != null && binding != null && binding.coinsTextView != null) {
-                binding.coinsTextView.setText("Coins: " + coins);
+
+        viewModel.currentMissionText.observe(getViewLifecycleOwner(), missionText -> {
+            if (binding != null) binding.missionTextView.setText(missionText != null ? missionText : "Loading mission...");
+        });
+
+        viewModel.activeQuestWithProgress.observe(getViewLifecycleOwner(), qwp -> {
+            currentQuestForFragmentContext = qwp; // Keep context for AR
+            if (qwp == null || qwp.quest == null) {
+                 Log.d(TAG, "Observed activeQuestWithProgress is null or quest is null.");
+                 updateClueMarkers(new ArrayList<>());
+            } else {
+                Log.d(TAG, "Observed activeQuestWithProgress: " + qwp.quest.getTitle());
+                // Clue markers are updated via currentQuestCluesWithProgress observer
             }
         });
+
+        viewModel.currentQuestCluesWithProgress.observe(getViewLifecycleOwner(), this::updateClueMarkers);
     }
 
     @Override
     public void onARElementCollected(long clueId, int rewardPoints) {
-        Log.d(TAG, "AR Element Collected: Clue ID " + clueId + ", Points: " + rewardPoints);
-        viewModel.addScore(rewardPoints);
-        if (currentQuestForFragmentContext != null) {
-             viewModel.clueCollected(clueId, currentQuestForFragmentContext);
-        } else {
-            Log.e(TAG, "currentQuestForFragmentContext is null in onARElementCollected");
-            Toast.makeText(getContext(), "Error processing clue collection (no quest context).", Toast.LENGTH_LONG).show();
-        }
+        Log.d(TAG, "AR Element Collected by Player! Clue ID: " + clueId + ", Reward Points: " + rewardPoints);
+        // ViewModel now handles interaction with QuestManager and PlayerProfileRepository
+        viewModel.clueCollectedByPlayer(clueId, rewardPoints);
     }
 
-    private void updateClueMarkers(List<Clue> clues) {
-        if (mapView == null || getContext() == null) return;
-
-        List<org.osmdroid.views.overlay.Overlay> mapOverlays = mapView.getOverlays();
-        // More careful removal of only clue markers
-        for (Marker oldMarker : clueMarkers) {
-            mapOverlays.remove(oldMarker);
-        }
-        clueMarkers.clear();
-
-        if (clues == null || clues.isEmpty()) {
-            mapView.invalidate();
+    private void updateClueMarkers(List<ClueWithProgress> cluesWithProgressList) {
+        if (mapView == null || getContext() == null) {
+            Log.e(TAG, "updateClueMarkers: mapView or context is null.");
             return;
         }
 
-        for (Clue clue : clues) {
+        for (Marker oldMarker : clueMarkers) {
+            mapView.getOverlays().remove(oldMarker);
+        }
+        clueMarkers.clear();
+
+        if (cluesWithProgressList == null || cluesWithProgressList.isEmpty()) {
+            mapView.invalidate();
+            Log.d(TAG, "updateClueMarkers: No clues to display or list is null/empty.");
+            return;
+        }
+        Log.d(TAG, "updateClueMarkers: Displaying " + cluesWithProgressList.size() + " clues.");
+
+        for (ClueWithProgress cwp : cluesWithProgressList) {
+            if (cwp.clue == null) {
+                Log.w(TAG, "ClueWithProgress contains a null Clue object.");
+                continue;
+            }
+            Clue clue = cwp.clue;
+            boolean discovered = (cwp.progress != null && cwp.progress.discoveredByTeam);
+
             Marker marker = new Marker(mapView);
             marker.setPosition(new GeoPoint(clue.getTargetLatitude(), clue.getTargetLongitude()));
-            marker.setRelatedObject(clue);
-            marker.setTitle(clue.getText().substring(0, Math.min(clue.getText().length(), 20)) + "...");
+            marker.setRelatedObject(cwp);
+            marker.setTitle(clue.getText() != null ? clue.getText().substring(0, Math.min(clue.getText().length(), 20)) + "..." : "Clue");
 
-            if (clue.isDiscovered()) {
-                marker.setIcon(ContextCompat.getDrawable(requireContext(), R.drawable.ic_marker_discovered));
-            } else {
-                marker.setIcon(ContextCompat.getDrawable(requireContext(), R.drawable.ic_marker_undiscovered));
-            }
+            marker.setIcon(ContextCompat.getDrawable(requireContext(),
+                discovered ? R.drawable.ic_marker_discovered : R.drawable.ic_marker_undiscovered));
             marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
 
             marker.setOnMarkerClickListener((m, mv) -> {
-                Clue clickedClue = (Clue) m.getRelatedObject();
-                if (clickedClue != null) {
-                    showClueDetailsDialog(clickedClue);
-                }
+                ClueWithProgress clickedCwp = (ClueWithProgress) m.getRelatedObject();
+                if (clickedCwp != null) showClueDetailsDialog(clickedCwp);
                 return true;
             });
             clueMarkers.add(marker);
-            mapOverlays.add(marker);
+            mapView.getOverlays().add(marker);
         }
         mapView.invalidate();
     }
 
-    private void showClueDetailsDialog(Clue clue) {
-        if (getContext() == null) return;
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext()); // Use getContext()
-        builder.setTitle("Clue: " + clue.getText().substring(0, Math.min(clue.getText().length(), 25))+"...");
+    private void showClueDetailsDialog(ClueWithProgress cwp) {
+        if (cwp == null || cwp.clue == null || getContext() == null) {
+            Log.e(TAG, "showClueDetailsDialog: ClueWithProgress or Clue or Context is null.");
+            return;
+        }
+        Clue clue = cwp.clue;
+        boolean discoveredByTeam = (cwp.progress != null && cwp.progress.discoveredByTeam);
 
-        StringBuilder message = new StringBuilder();
-        message.append(clue.getText()).append("\n\nStatus: ")
-               .append(clue.isDiscovered() ? "Discovered" : "Not Discovered");
+        // If it's an undiscovered puzzle clue, show the puzzle dialog
+        if (!discoveredByTeam &&
+            (clue.getClueType() == ClueType.PUZZLE_TEXT_RIDDLE || clue.getClueType() == ClueType.PUZZLE_MATH_SIMPLE)) {
 
-        if (!clue.isDiscovered() && clue.getHint() != null && !clue.getHint().isEmpty()) {
+            if (clue.getPuzzleData() == null || clue.getPuzzleData().isEmpty()) {
+                Toast.makeText(getContext(), "Puzzle data missing for this clue.", Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "Puzzle data is null or empty for clue ID: " + clue.getId());
+                // Show basic info instead if puzzle data is bad
+                showBasicClueInfoDialog(clue, discoveredByTeam);
+                return;
+            }
+
+            PuzzleDisplayFragment puzzleDialog = PuzzleDisplayFragment.newInstance(
+                clue.getId(),
+                clue.getClueType(),
+                clue.getPuzzleData()
+            );
+            puzzleDialog.setPuzzleSolvedListener(this); // ScavengerHuntFragment is the listener
+            if (getParentFragmentManager() != null) {
+                puzzleDialog.show(getParentFragmentManager(), PuzzleDisplayFragment.TAG);
+            } else {
+                Log.e(TAG, "getParentFragmentManager() is null, cannot show PuzzleDisplayFragment.");
+            }
+        } else {
+            // Original dialog logic for location clues or already solved puzzles
+            showBasicClueInfoDialog(clue, discoveredByTeam, cwp); // Pass CWP for AR launch
+        }
+    }
+
+    private void showBasicClueInfoDialog(Clue clue, boolean discoveredByTeam, @Nullable ClueWithProgress cwpForAr) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("Clue: " + (clue.getText() != null ? clue.getText().substring(0, Math.min(clue.getText().length(), 25))+"..." : "Details"));
+
+        StringBuilder message = new StringBuilder(clue.getText() != null ? clue.getText() : "No text available.");
+        message.append("\n\nStatus: ").append(discoveredByTeam ? "Discovered by Team" : "Not Yet Discovered");
+
+        if (!discoveredByTeam && clue.getHint() != null && !clue.getHint().isEmpty()) {
             message.append("\n\nHint: ").append(clue.getHint());
         }
         builder.setMessage(message.toString());
         builder.setPositiveButton("OK", null);
 
-        if (!clue.isDiscovered() && isPlayerNearClue(clue, PROXIMITY_RADIUS_FOR_AR_METERS)) {
-            builder.setNeutralButton("View in AR", (dialog, which) -> {
-                launchArForClue(clue);
-            });
+        // Only show "View in AR" for LOCATION clues, if not discovered, and if player is near.
+        if (clue.getClueType() == ClueType.LOCATION && !discoveredByTeam && cwpForAr != null && isPlayerNearClue(clue, PROXIMITY_RADIUS_FOR_AR_METERS)) {
+            builder.setNeutralButton("View in AR", (dialog, which) -> launchArForClue(cwpForAr));
         }
         builder.create().show();
+    }
+
+    // Overload for when CWP is not needed (e.g. after puzzle data error)
+    private void showBasicClueInfoDialog(Clue clue, boolean discoveredByTeam) {
+        showBasicClueInfoDialog(clue, discoveredByTeam, null);
     }
 
     private boolean isPlayerNearClue(Clue clue, float proximityRadiusMeters) {
@@ -265,69 +332,46 @@ public class ScavengerHuntFragment extends Fragment implements ARObjectInteracti
             deviceLocation = myLocationOverlay.getLastFix();
         } else if (myLocationOverlay != null && myLocationOverlay.getMyLocation() != null) {
             GeoPoint currentGeoPoint = myLocationOverlay.getMyLocation();
-            deviceLocation = new Location(""); // Provider name is optional
+            deviceLocation = new Location("");
             deviceLocation.setLatitude(currentGeoPoint.getLatitude());
             deviceLocation.setLongitude(currentGeoPoint.getLongitude());
         }
 
         if (deviceLocation == null) {
-            if (getContext() != null) Toast.makeText(getContext(), "Current location not available.", Toast.LENGTH_SHORT).show();
-            Log.w(TAG, "Cannot check proximity for AR: deviceLocation is null.");
+            if(getContext() != null) Toast.makeText(getContext(), "Current location unavailable for proximity check.", Toast.LENGTH_SHORT).show();
+            Log.w(TAG, "isPlayerNearClue: deviceLocation is null.");
             return false;
         }
-
+        if (clue == null) {
+            Log.e(TAG, "isPlayerNearClue: Clue object is null.");
+            return false;
+        }
         Location clueLocation = new Location("");
         clueLocation.setLatitude(clue.getTargetLatitude());
         clueLocation.setLongitude(clue.getTargetLongitude());
         float distance = deviceLocation.distanceTo(clueLocation);
-        Log.d(TAG, "Distance to clue " + clue.getId() + " for AR check: " + distance + "m");
+        Log.d(TAG, "isPlayerNearClue: Distance to clue " + clue.getId() + " is " + distance + "m. Radius: " + proximityRadiusMeters + "m.");
         return distance < proximityRadiusMeters;
     }
 
-    private void launchArForClue(Clue clue) {
-        if (currentQuestForFragmentContext == null) {
-             if (getContext() != null) Toast.makeText(getContext(), "No active quest to launch AR for.", Toast.LENGTH_SHORT).show();
+    private void launchArForClue(ClueWithProgress cwp) {
+        QuestWithProgress activeQwp = viewModel.activeQuestWithProgress.getValue();
+        if (cwp == null || cwp.clue == null || activeQwp == null || activeQwp.quest == null || getContext() == null) {
+             if(getContext() != null) Toast.makeText(getContext(), "Cannot launch AR: Critical data missing (clue/quest).", Toast.LENGTH_SHORT).show();
+             Log.e(TAG, "launchArForClue: Prerequisite data missing.");
              return;
         }
+        Clue clue = cwp.clue;
+        Quest quest = activeQwp.quest;
+
+        Log.d(TAG, "Launching AR for Clue ID: " + clue.getId() + " of Quest: " + quest.getTitle());
         ARSceneFragment arFragment = ARSceneFragment.newInstance(
-            clue.getTargetLatitude(),
-            clue.getTargetLongitude(),
-            clue.getId(),
-            currentQuestForFragmentContext.getRewardPoints()
-        );
+            clue.getTargetLatitude(), clue.getTargetLongitude(), clue.getId(), quest.getRewardPoints());
+
+        // Ensure R.id.nav_host_fragment (or nav_host_fragment_content_main) is correct for MainActivity's NavHost
         getParentFragmentManager().beginTransaction()
             .replace(R.id.nav_host_fragment_content_main, arFragment)
-            .addToBackStack(TAG) // Use TAG for backstack name for clarity
+            .addToBackStack(TAG) // Use fragment's TAG for backstack name
             .commit();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (mapView != null) mapView.onResume();
-        if (myLocationOverlay != null) myLocationOverlay.enableMyLocation();
-        if (compassOverlay != null) compassOverlay.enableCompass();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        if (mapView != null) mapView.onPause();
-        if (myLocationOverlay != null) myLocationOverlay.disableMyLocation();
-        if (compassOverlay != null) compassOverlay.disableCompass();
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        if (mapView != null) {
-            mapView.onDetach();
-        }
-        mapView = null;
-        myLocationOverlay = null;
-        compassOverlay = null;
-        rotationGestureOverlay = null;
-        clueMarkers.clear();
-        binding = null;
     }
 }

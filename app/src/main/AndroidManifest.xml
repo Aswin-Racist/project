@@ -50,6 +50,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.auth.SignupActivity" android:exported="false" />
+        <activity android:name=".ui.admin.AdminDashboardActivity" android:exported="false" />
+        <activity android:name=".ui.chat.TeamChatActivity" android:exported="false" />
 
     </application>
 

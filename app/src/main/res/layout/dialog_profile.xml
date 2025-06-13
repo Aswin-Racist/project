@@ -8,6 +8,87 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:text="Team Information"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/current_team_name_text_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Team: Not in a team"
+        android:textSize="16sp"/>
+
+    <TextView
+        android:id="@+id/current_team_id_text_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp"/>
+
+    <LinearLayout
+        android:id="@+id/create_team_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="8dp">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/team_name_edit_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter Team Name to Create"/>
+        </com.google.android.material.textfield.TextInputLayout>
+        <Button
+            android:id="@+id/create_team_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Create Team"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/join_team_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="8dp">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/join_team_id_edit_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter Team ID to Join"/>
+        </com.google.android.material.textfield.TextInputLayout>
+        <Button
+            android:id="@+id/join_team_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Join Team"/>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/leave_team_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Leave Team"
+        android:visibility="gone"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="@android:color/holo_red_light"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:text="@string/profile_title"
         android:textSize="24sp"
         android:textStyle="bold"

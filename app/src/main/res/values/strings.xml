@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Solo Adventure</string>
+    <string name="app_name">Treasure Hunt Adventure</string>
     <string name="no_missions">No active missions</string>
     <string name="points_format">Points: %d</string>
     <string name="points_default">Points: 0</string>

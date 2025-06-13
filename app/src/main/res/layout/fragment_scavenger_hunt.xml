@@ -88,19 +88,42 @@
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:text="@string/points_default" />
+                android:text="Points: 0" />
+
+            <TextView
+                android:id="@+id/stamina_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:layout_marginTop="4dp"
+                android:text="Stamina: 100" />
+
+            <TextView
+                android:id="@+id/coins_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:layout_marginTop="4dp"
+                android:text="Coins: 0" />
 
             <TextView
                 android:id="@+id/mission_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:maxHeight="120dp"
+                android:maxHeight="100dp"
                 android:scrollbars="vertical"
                 android:text="@string/no_missions" />
 
+            <Button
+                android:id="@+id/search_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_gravity="center_horizontal"
+                android:text="Search Area (Cost: 10 Stamina)"/>
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
 
-</androidx.constraintlayout.widget.ConstraintLayout> 
+</androidx.constraintlayout.widget.ConstraintLayout>

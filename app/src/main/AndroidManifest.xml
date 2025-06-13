@@ -43,15 +43,15 @@
             <!-- Launcher intent filter removed -->
         </activity>
 
-        <activity android:name=".ui.auth.LoginActivity" android:exported="true">
+        <activity android:name=".ui.auth.LoginActivity" android:label="@string/app_name" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.auth.SignupActivity" android:exported="false" />
-        <activity android:name=".ui.admin.AdminDashboardActivity" android:exported="false" />
-        <activity android:name=".ui.chat.TeamChatActivity" android:exported="false" />
+        <activity android:name=".ui.auth.SignupActivity" android:label="Sign Up" android:exported="false" />
+        <activity android:name=".ui.admin.AdminDashboardActivity" android:label="Admin Dashboard" android:exported="false" />
+        <activity android:name=".ui.chat.TeamChatActivity" android:label="Team Chat" android:exported="false" />
 
     </application>
 

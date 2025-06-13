@@ -1,6 +1,6 @@
-# AR Scavenger Hunt - Team Adventure Game
+# Treasure Hunt Adventure
 
-An Android-based augmented reality scavenger hunt game where players team up to solve clues, complete quests, and explore their surroundings.
+An Android-based treasure hunting game where players team up to solve clues, complete quests, and explore their surroundings.
 
 ## Core Features
 

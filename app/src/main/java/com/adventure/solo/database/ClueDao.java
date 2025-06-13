@@ -8,24 +8,31 @@ import androidx.room.Update;
 import com.adventure.solo.model.Clue;
 import java.util.List;
 
+import androidx.room.Dao;
+import androidx.room.Insert;
+import androidx.room.OnConflictStrategy; // Added
+import androidx.room.Query;
+import com.adventure.solo.model.Clue;
+import java.util.List;
+
 @Dao
 public interface ClueDao {
-    @Insert
-    void insert(Clue clue);
+    @Insert(onConflict = OnConflictStrategy.REPLACE) // Added
+    void insertClue(Clue clue); // Renamed
 
-    @Insert
-    void insertAll(List<Clue> clues);
+    @Insert(onConflict = OnConflictStrategy.REPLACE) // Added
+    void insertAllClues(List<Clue> clues); // Renamed
 
-    @Update
-    void update(Clue clue);
+    // @Update - Update method was removed in prompt, assuming it's not needed or handled by insert with REPLACE
+    // void update(Clue clue);
 
     @Delete
     void delete(Clue clue);
 
-    @Query("SELECT * FROM clues WHERE questId = :questId ORDER BY sequenceNumber")
-    List<Clue> getCluesForQuest(long questId);
+    @Query("SELECT * FROM clues WHERE questId = :questId ORDER BY sequenceNumber ASC") // Added ASC
+    List<Clue> getCluesByQuestIdNonLiveData(long questId); // Renamed
 
-    @Query("SELECT * FROM clues WHERE questId = :questId AND discovered = 0 ORDER BY sequenceNumber LIMIT 1")
+    @Query("SELECT * FROM clues WHERE questId = :questId AND discovered = 0 ORDER BY sequenceNumber ASC LIMIT 1") // Added ASC
     Clue getNextUndiscoveredClue(long questId);
 
     @Query("SELECT * FROM clues WHERE questId = :questId AND discovered = 0 ORDER BY sequenceNumber")

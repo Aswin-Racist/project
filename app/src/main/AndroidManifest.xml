@@ -9,9 +9,11 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
     
     <uses-feature android:name="android.hardware.location.gps" android:required="true" />
     <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.ar" android:required="true"/>
 
 
     <application
@@ -27,6 +29,8 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
+        <meta-data android:name="com.google.ar.core" android:value="required" />
+
         <activity
             android:name=".LeaderboardActivity"
             android:exported="false" />
@@ -36,11 +40,18 @@
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Map.NoActionBar">
+            <!-- Launcher intent filter removed -->
+        </activity>
+
+        <activity android:name=".ui.auth.LoginActivity" android:label="@string/app_name" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ui.auth.SignupActivity" android:label="Sign Up" android:exported="false" />
+        <activity android:name=".ui.admin.AdminDashboardActivity" android:label="Admin Dashboard" android:exported="false" />
+        <activity android:name=".ui.chat.TeamChatActivity" android:label="Team Chat" android:exported="false" />
 
     </application>
 

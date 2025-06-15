@@ -42,4 +42,12 @@ public class ClueRepository {
     public List<Clue> getUndiscoveredClues(long questId) {
         return clueDao.getUndiscoveredClues(questId);
     }
+
+    public void updateDiscoveredStatus(long clueId, boolean discovered) {
+        clueDao.updateDiscoveredStatus(clueId, discovered);
+    }
+
+    public Clue getClueById(long clueId) {
+        return clueDao.getClueById(clueId);
+    }
 } 
